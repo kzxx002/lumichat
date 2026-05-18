@@ -409,7 +409,7 @@ async function sendMessage(userText) {
       model: State.model,
       messages,
       temperature: State.temperature,
-      max_tokens: 65536,
+      max_tokens: 8192,
       stream: true,
     };
 
