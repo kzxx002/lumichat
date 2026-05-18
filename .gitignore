@@ -1,0 +1,27 @@
+# 依赖和缓存
+node_modules/
+.npm/
+
+# 构建产物
+dist/
+build/
+
+# 系统文件
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 环境变量（如果后续添加后端）
+.env
+.env.local
+.env.*.local
+
+# 日志
+*.log
+npm-debug.log*

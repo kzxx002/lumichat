@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LumiChat · AI 智能助手</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✨</text></svg>" />
+  <link rel="stylesheet" href="style.css" />
+  <!-- highlight.js 代码高亮 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" id="hljs-theme" />
+  <!-- marked.js Markdown 渲染 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+  <!-- highlight.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <!-- DOMPurify 安全过滤 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+</head>
+<body class="light-mode">
+
+  <!-- ===== 侧边栏 ===== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <span class="logo-icon">✨</span>
+        <span class="logo-text">LumiChat</span>
+      </div>
+      <button class="btn-icon" id="btn-new-chat" title="新建对话">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="sidebar-section-label">历史对话</div>
+    <div class="chat-list" id="chat-list">
+      <!-- 动态生成 -->
+    </div>
+
+    <div class="sidebar-footer">
+      <button class="btn-sidebar-action" id="btn-settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+        </svg>
+        设置
+      </button>
+      <button class="btn-sidebar-action" id="btn-toggle-theme">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="theme-icon">
+          <circle cx="12" cy="12" r="5"/>
+          <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+        </svg>
+        切换主题
+      </button>
+    </div>
+  </aside>
+
+  <!-- ===== 侧边栏遮罩（移动端） ===== -->
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+  <!-- ===== 主内容区 ===== -->
+  <main class="main" id="main">
+
+    <!-- 顶部导航 -->
+    <header class="topbar">
+      <button class="btn-icon" id="btn-menu" title="菜单">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 12h18M3 6h18M3 18h18"/>
+        </svg>
+      </button>
+      <div class="topbar-title" id="topbar-title">新建对话</div>
+      <button class="btn-icon" id="btn-clear-chat" title="清空当前对话">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6M10 11v6M14 11v6"/>
+          <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+        </svg>
+      </button>
+    </header>
+
+    <!-- 聊天区域 -->
+    <section class="chat-area" id="chat-area">
+
+      <!-- 欢迎屏 -->
+      <div class="welcome-screen" id="welcome-screen">
+        <div class="welcome-icon">✨</div>
+        <h1 class="welcome-title">你好，我是 LumiChat</h1>
+        <p class="welcome-subtitle">由智谱 GLM-4-Flash 驱动的 AI 助手，极速响应</p>
+        <div class="suggestion-grid">
+          <button class="suggestion-card" data-prompt="帮我写一首关于春天的现代诗">
+            <span class="suggestion-icon">✍️</span>
+            <span>帮我写一首<br/>关于春天的现代诗</span>
+          </button>
+          <button class="suggestion-card" data-prompt="用 Python 写一个快速排序算法并解释原理">
+            <span class="suggestion-icon">💻</span>
+            <span>用 Python 写<br/>快速排序算法</span>
+          </button>
+          <button class="suggestion-card" data-prompt="解释量子纠缠是什么，用通俗易懂的语言">
+            <span class="suggestion-icon">🔬</span>
+            <span>解释量子纠缠<br/>（通俗版）</span>
+          </button>
+          <button class="suggestion-card" data-prompt="给我10个创业点子，聚焦于 AI 和教育领域">
+            <span class="suggestion-icon">💡</span>
+            <span>10个 AI 教育<br/>创业点子</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 消息列表 -->
+      <div class="messages" id="messages"></div>
+    </section>
+
+    <!-- 输入区域 -->
+    <footer class="input-area">
+      <div class="input-wrapper">
+        <div class="model-selector-wrap">
+          <select class="model-selector" id="model-selector" title="选择模型">
+            <option value="glm-5.1">🔮 GLM-5.1（推荐 · 最强推理）</option>
+            <option value="glm-5-flashx">⚡ GLM-5-FlashX（超快 · 免费）</option>
+            <option value="glm-4-plus">💎 GLM-4-Plus（高性价比）</option>
+            <option value="glm-4-flash" selected>🚀 GLM-4-Flash（极速轻量）</option>
+          </select>
+        </div>
+        <div class="textarea-row">
+          <textarea
+            id="user-input"
+            class="user-input"
+            placeholder="输入消息，Shift+Enter 换行，Enter 发送..."
+            rows="1"
+            maxlength="8000"
+          ></textarea>
+          <button class="btn-send" id="btn-send" disabled>
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+            </svg>
+          </button>
+        </div>
+        <div class="input-footer">
+          <span class="char-count" id="char-count">0 / 8000</span>
+          <span class="input-hint">Enter 发送 · Shift+Enter 换行</span>
+        </div>
+      </div>
+    </footer>
+  </main>
+
+  <!-- ===== 设置弹窗 ===== -->
+  <div class="modal-overlay" id="settings-modal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-labelledby="modal-title">
+      <div class="modal-header">
+        <h2 id="modal-title">⚙️ 设置</h2>
+        <button class="btn-icon" id="btn-close-settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 6L6 18M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="setting-group">
+          <label class="setting-label" for="api-key-input">
+            智谱 GLM API Key
+            <a href="https://open.bigmodel.cn/dev/apikey" target="_blank" class="setting-link">免费获取 →</a>
+          </label>
+          <div class="api-key-row">
+            <input
+              type="password"
+              id="api-key-input"
+              class="setting-input"
+              placeholder="输入智谱 GLM API Key（以 glm- 或 sk- 开头）"
+            />
+            <button class="btn-toggle-visibility" id="btn-toggle-key" title="显示/隐藏">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="eye-icon">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+          <p class="setting-hint">API Key 仅存储在本地浏览器，不会上传至服务器</p>
+        </div>
+
+        <div class="setting-group">
+          <label class="setting-label" for="thinking-toggle">
+            深度思考模式 (Thinking)
+            <span class="setting-hint-inline">开启后模型会展示推理过程</span>
+          </label>
+          <label class="toggle-switch">
+            <input type="checkbox" id="thinking-toggle" />
+            <span class="toggle-slider"></span>
+            <span class="toggle-label" id="thinking-label">已关闭</span>
+          </label>
+        </div>
+
+        <div class="setting-group">
+          <label class="setting-label" for="system-prompt-input">系统提示词（可选）</label>
+          <textarea
+            id="system-prompt-input"
+            class="setting-input setting-textarea"
+            placeholder="例如：你是一个专业的 Python 程序员，回答时尽量提供完整可运行的代码示例..."
+            rows="4"
+          ></textarea>
+        </div>
+
+        <div class="setting-group">
+          <label class="setting-label" for="temperature-input">
+            创造力 (Temperature)
+            <span class="setting-value" id="temperature-value">0.7</span>
+          </label>
+          <input type="range" id="temperature-input" class="setting-range" min="0" max="2" step="0.1" value="0.7" />
+          <div class="range-labels">
+            <span>严谨</span>
+            <span>平衡</span>
+            <span>创意</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="btn-cancel-settings">取消</button>
+        <button class="btn-primary" id="btn-save-settings">保存设置</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Toast 通知 ===== -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
