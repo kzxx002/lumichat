@@ -1,19 +1,27 @@
 /* ============================================================
-   LumiChat · 主逻辑（智谱 GLM-5.1）
+   LumiChat · 主逻辑（Claude via ai.luogu.me）
    ============================================================ */
 
 'use strict';
+
+// ============================================================
+// API 配置
+// ============================================================
+
+const API_CONFIG = {
+  baseUrl: 'https://ai.luogu.me/v1',
+};
 
 // ============================================================
 // 状态管理
 // ============================================================
 
 const State = {
-  apiKey: '28b4638eb27a46d2b88e7d9844c186f1.9ENwcPCCbnvSXoyP',
+  apiKey: 'sk-cSlJKXHKGlVc30ePtaSvhhHQS6saDyhQl0c3us6fRrBdBAeq',
   systemPrompt: '',
   temperature: 0.7,
-  model: 'glm-4-flash',
-  thinkingEnabled: false,  // GLM-4-Flash 不支持深度思考
+  model: 'claude-sonnet-4-6',
+  thinkingEnabled: false,  // Claude 模型暂不支持深度思考
   chats: {},           // { id: { title, messages: [] } }
   currentChatId: null,
   isStreaming: false,
@@ -46,7 +54,7 @@ const Storage = {
       State.apiKey = localStorage.getItem('lumichat_api_key') || '';
       State.systemPrompt = localStorage.getItem('lumichat_system_prompt') || '';
       State.temperature = parseFloat(localStorage.getItem('lumichat_temperature') || '0.7');
-      State.model = localStorage.getItem('lumichat_model') || 'glm-5.1';
+      State.model = localStorage.getItem('lumichat_model') || 'claude-haiku-4-5';
       State.thinkingEnabled = localStorage.getItem('lumichat_thinking') !== 'false';
 
       const chatsRaw = localStorage.getItem('lumichat_chats');
@@ -346,7 +354,7 @@ function scrollToBottom(smooth = true) {
 }
 
 // ============================================================
-// 智谱 GLM-5.1 API 调用（SSE 流式）
+// Claude API 调用（OpenAI 兼容格式 · SSE 流式）
 // ============================================================
 
 async function sendMessage(userText) {
@@ -358,7 +366,7 @@ async function sendMessage(userText) {
 
   // 检查 API Key
   if (!State.apiKey) {
-    showToast('请先在设置中填写智谱 GLM API Key', 'error');
+    showToast('请先在设置中填写 API Key', 'error');
     openSettings();
     return;
   }
@@ -394,7 +402,7 @@ async function sendMessage(userText) {
     if (State.systemPrompt) {
       messages.push({ role: 'system', content: State.systemPrompt });
     }
-    // 只取最近 30 条（GLM 支持 200K 上下文，但控制合理长度）
+    // 只取最近 30 条
     const history = chat.messages.slice(-30);
     history.forEach(m => {
       if (m.role === 'ai') {
@@ -413,12 +421,7 @@ async function sendMessage(userText) {
       stream: true,
     };
 
-    // 启用深度思考模式
-    if (State.thinkingEnabled) {
-      body.thinking = { type: 'enabled' };
-    }
-
-    const response = await fetch('https://open.bigmodel.cn/api/paas/v4/chat/completions', {
+    const response = await fetch(`${API_CONFIG.baseUrl}/chat/completions`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${State.apiKey}`,
