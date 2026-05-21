@@ -51,10 +51,17 @@ const Storage = {
 
   load() {
     try {
-      State.apiKey = localStorage.getItem('lumichat_api_key') || '';
+      // 仅当 localStorage 中有值且不是旧 GLM Key 时才覆盖默认 Key
+      const storedKey = localStorage.getItem('lumichat_api_key');
+      if (storedKey && !storedKey.startsWith('28b4638e') && storedKey.startsWith('sk-')) {
+        State.apiKey = storedKey;
+      }
       State.systemPrompt = localStorage.getItem('lumichat_system_prompt') || '';
       State.temperature = parseFloat(localStorage.getItem('lumichat_temperature') || '0.7');
-      State.model = localStorage.getItem('lumichat_model') || 'claude-haiku-4-5';
+      const storedModel = localStorage.getItem('lumichat_model');
+      if (storedModel && ['claude-sonnet-4-6', 'claude-opus-4-6', 'claude-haiku-4-5'].includes(storedModel)) {
+        State.model = storedModel;
+      }
       State.thinkingEnabled = localStorage.getItem('lumichat_thinking') !== 'false';
 
       const chatsRaw = localStorage.getItem('lumichat_chats');
